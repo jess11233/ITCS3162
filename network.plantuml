@@ -1,0 +1,93 @@
+@startuml Network
+' layout
+skinparam componentStyle rectangle
+skinparam shadowing false
+left to right direction
+
+' Title
+title Star-Hybrid Network Topology — FortiGate + Cisco 3750 (CompTIA Ch.1-4)
+
+' Internet cloud and edge device
+cloud "Internet (ISP)" as Internet
+
+package "Perimeter" {
+  component "FortiGate\nRouter / NGFW\n(NAT, DHCP, VPN)" as FortiGate
+}
+
+Internet --> FortiGate : Public IP / ISP Link
+
+' Core switch
+package "Core Network" {
+  node "Cisco Catalyst 3750\nManaged 48-port Switch\n(VLAN capable, Layer 2/3)" as Switch
+}
+
+FortiGate ==> Switch : Fiber Uplink\n(Trunk / Inter-VLAN routing)
+
+' VLAN groups around the switch
+rectangle "VLAN 10 - Servers\nSubnet: 192.168.2.0/24\n(Static IPs)" as VLAN_SERVERS {
+  component "File Server 1\n192.168.2.11 (static)" as FS1
+  component "File Server 2\n192.168.2.12 (static)" as FS2
+  component "Internet Server\n192.168.2.20 (static)" as ISP_SRV
+}
+
+rectangle "VLAN 20 - Printers\nSubnet: 192.168.3.0/24\n(Static IPs)" as VLAN_PRINTERS {
+  component "Printer 1\n192.168.3.101" as PR1
+  component "Printer 2\n192.168.3.102" as PR2
+}
+
+rectangle "VLAN 30 - Users (Wired)\nSubnet: 192.168.1.0/24\n(DHCP)" as VLAN_USERS {
+  ' Represent desktops as grouped components
+  component "Desktops (30)\nDHCP: 192.168.1.x" as DESKS
+}
+
+rectangle "VLAN 40 - Wi-Fi (Wireless)\nSubnet: 192.168.4.0/24\n(DHCP, WPA3)" as VLAN_WIFI {
+  component "UniFi APs\n(WPA3, WPA2 fallback)" as WAP
+  component "Laptops (10)\nDHCP: 192.168.4.x" as LAPS
+  component "Future Devices\nDHCP reserved" as FUTURE
+}
+
+' Connections from switch to groups
+Switch -[#000000]-> FS1 : Cat6
+Switch -[#000000]-> FS2 : Cat6
+Switch -[#000000]-> ISP_SRV : Cat6
+Switch -[#000000]-> PR1 : Cat6
+Switch -[#000000]-> PR2 : Cat6
+Switch -[#000000]-> DESKS : Cat6
+
+' Wi-Fi connection: AP wired to switch, clients wireless to AP
+Switch -[#000000,thickness=2]-> WAP : Cat6 (AP uplink)
+WAP .. LAPS : Wireless (802.11ax / Wi-Fi 6)
+WAP .. FUTURE : Wireless (802.11ax / Wi-Fi 6)
+
+' Show router role and NAT/DHCP
+note right of FortiGate
+  - Edge device: NAT & firewall
+  - DHCP scope for VLANs (or DHCP-relay to FortiGate)
+end note
+
+' VLAN/Trunk note
+note left of Switch
+  - Trunk port to FortiGate\n(carries VLAN 10,20,30,40)\n- Inter-VLAN routing at FortiGate or Switch-3
+end note
+
+' Legend and cable types
+legend right
+  |--| Description |
+  |--|--------------|
+  |--| Solid line : Cat6 (Twisted pair) |
+  |==| Thick line  : Fiber uplink (backbone) |
+  |..| Dotted line : Wireless (Wi-Fi 6) |
+endlegend
+
+' Represent fiber uplink visually (FortiGate to Switch already with ==>)
+FortiGate -[#0000FF,thickness=3]-> Switch : Fiber Uplink (10 Gbps)
+
+' Add labels to emphasize CompTIA chapter mapping (small text)
+note bottom of Switch
+  *Ch.1 Topologies:* Star-Hybrid (centralized switch hub)\n
+  *Ch.2 Cables:* Cat6 endpoints, Fiber uplink backbone\n
+  *Ch.3 Devices:* FortiGate (Router/NGFW), Cisco 3750 (Managed Switch), UniFi AP\n
+  *Ch.4 IP:* Private addressing, VLAN subnets, DHCP/static assignment
+end note
+
+@enduml
