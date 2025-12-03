@@ -2,7 +2,12 @@ import socket
 
 server = socket.socket()
 
+# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s 
+# s.bind((HOST, PORT))
+
 server.bind(("127.0.0.1", 5000))
+
+#     s.listen()
 
 server.listen(1)
 print("Server is now running and waiting for the client.")
