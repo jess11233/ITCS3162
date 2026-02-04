@@ -1,0 +1,6 @@
+{
+    "name": "Jesse", 
+    "ID": 801292588, 
+    "isStudent": true,
+    "classes": ["Gym", "math"]
+}
